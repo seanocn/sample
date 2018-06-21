@@ -2,13 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UsersController extends Controller
 {
-    //渲染登录页面
+    //创建用户登录页面
     public function create()
     {
         return view('users.create');
+    }
+
+    //显示用户个人信息页面
+    public function show(User $user)
+    {
+        return view('users.show',compact('user'));
+    }
+
+    //处理用户提交数据
+    public function store(Request $request)
+    {
+        //验证用户信息
+        $this->validate($request,[
+           'name' => 'required|max:50',
+           'email' => 'required|email|unique:users|max:255',
+           'password' => 'required|confirmed|min:6'
+        ]);
+
+        //保存到数据库
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+
+        session()->flash('success','欢迎，您将在这里开启一段新的旅程');
+        return redirect()->route('users.show',[$user]);
     }
 }
